@@ -1,3 +1,9 @@
+"""
+Code developed to obtain weather data online.
+
+Developed by: Pedro Leal and Justin Cabezuela
+"""
+
 #import urllib2
 from bs4 import BeautifulSoup
 import sys
@@ -6,6 +12,7 @@ import csv
 import numpy as np
 from scipy import interpolate
 import pylab as py
+
 ### INPUT YEAR AND MONTH
 YEAR = '2014'
 MONTH = '01'
@@ -94,8 +101,6 @@ for location in locations[0:10]:
 
     #Delete Unnecessary Columns
 f.close() 
-
-
 
 f = open("WB" + YEAR + "_" + MONTH + "_" + DAY + ".csv","w")
 f.write('Latitude' + ',' + 'Longtitude' + ',' + 'Pressure [hPa]' + ',' + 'Height [m]' + ',' + 'Temperature [C]' + ',' + 'Relative Humidity [%]' +  ',' + 'Wind Direction [deg]' +  ',' + 'Wind Speed [knot]' + '\n')

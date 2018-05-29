@@ -15,8 +15,8 @@ import copy
 YEAR = '2018'
 MONTH = '05'
 ### INPUT BEGIN AND END TIME 
-DAY = '22'
-HOUR = '12'
+DAY = '29'
+HOUR = '06'
 
 
 # Initialize data dictionary
@@ -94,33 +94,30 @@ for j in range(len(x)):
             latitude = word_list[12]
             long_1 = word_list[15]
             longitude = long_1[:-52]
+            
             # check if latitude and longitude are a numbers
             latnum = latitude
             latnum = float(latnum)
             longnum = longitude
             longnum = float(longnum)
                
-            if k == 0 and j == 0:
+            # add elements to dictionary
+            ydict = copy.deepcopy(all_data)
+            yy = ydict['latitude']
+            xx = ydict['longitude']
+            i = 0
+            bigList = []
+            while '' in xx:
+                if i > 0 and xx[i] == '':
+                        xx.pop(i)
+                        yy.pop(i)
+                else:
+                    bigList.append([xx[i], yy[i]])
+                    i += 1
+            if [longitude, latitude] not in bigList:
                 appendToDictionary(latitude, longitude)
                 counter += 1
                 print(counter)
-            else: 
-                ydict = copy.deepcopy(all_data)
-                yy = ydict['latitude']
-                xx = ydict['longitude']
-                i = 0
-                bigList = []
-                while '' in xx:
-                    if i > 0 and xx[i] == '':
-                            xx.pop(i)
-                            yy.pop(i)
-                    else:
-                        bigList.append([xx[i], yy[i]])
-                        i += 1
-                if [longitude, latitude] not in bigList:
-                    appendToDictionary(latitude, longitude)
-                    counter += 1
-                    print(counter)
 
         except:
             doNothingVariable = 0
@@ -148,6 +145,6 @@ with open("Twister" + YEAR + "_" + MONTH + "_" + DAY + ".csv", "a") as f:
             wtr.writerow(row)
 
 # creating pickle file for later use
-g = open("file.p","wb")
+g = open("file" + DAY + ".p","wb")
 pickle.dump(all_data,g)
 g.close()

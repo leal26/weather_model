@@ -8,7 +8,7 @@ from scipy.interpolate import griddata
 import pickle
 from mpl_toolkits.basemap import Basemap
 
-
+DAY = '29'
 all_data = pickle.load(open("file" + DAY + ".p", "rb"))
 
 # Getting non-repeating list of lat/long

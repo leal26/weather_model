@@ -9,13 +9,15 @@ from bs4 import BeautifulSoup
 import pickle
 import unicodedata as ud
 import copy
+import datetime
+import numpy as np
 
 
 ### INPUT YEAR AND MONTH
 YEAR = '2018'
 MONTH = '05'
 ### INPUT BEGIN AND END TIME 
-DAY = '29'
+DAY = '30'
 HOUR = '06'
 
 
@@ -65,8 +67,8 @@ def appendToDictionary(latitude, longitude):
 # X,Y Locations on TwisterData.com grid            
 # x = [212, 465, 444, 446, 456, 250, 216, 474, 611, 778]
 # y = [418, 439, 347, 331, 335, 278, 174, 233, 251, 151]
-x = range(431,442) #(972)
-y = range(383,394) #(696)
+x = np.linspace(13,58,46) #lat - (13,58)
+y = np.linspace(-144,-53,92) #lon - (-144,-53)
 
 counter = 0
 print(counter)
@@ -75,9 +77,10 @@ for j in range(len(x)):
         X = str(x[j])
         Y = str(y[k])
         print X, Y
+        print('{:%H:%M:%S}'.format(datetime.datetime.now()))
         # Access Website
         html = urllib.urlopen('http://www.twisterdata.com/index.php?'
-                              + 'sounding.x=' + X + '&sounding.y=' + Y 
+                              + 'sounding.lat=' + X + '&sounding.lon=' + Y 
                               + '&prog=forecast&model=GFS&grid=3&model_yyyy='
                               + YEAR + '&model_mm=' + MONTH + '&model_dd=' 
                               + DAY + '&model_init_hh=' + HOUR + '&fhour=00'
@@ -100,8 +103,11 @@ for j in range(len(x)):
             latnum = float(latnum)
             longnum = longitude
             longnum = float(longnum)
-               
+            
             # add elements to dictionary
+            appendToDictionary(latitude, longitude)
+               
+            ''' NO LONGER NEEDED since lat and lon are changed in url
             ydict = copy.deepcopy(all_data)
             yy = ydict['latitude']
             xx = ydict['longitude']
@@ -118,7 +124,7 @@ for j in range(len(x)):
                 appendToDictionary(latitude, longitude)
                 counter += 1
                 print(counter)
-
+            '''
         except:
             doNothingVariable = 0
             # do nothing

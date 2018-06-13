@@ -23,7 +23,7 @@ lat = []
 lon = []
 dist = []
 flightplan = 'MMMX-CYQB'
-filename = flightplan + '.csv'
+filename = 'Flight_Plan_Files' + flightplan + '.csv'
 with open(filename, 'rb') as f:
     reader = csv.reader(f)
     for row in reader:

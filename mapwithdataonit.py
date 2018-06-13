@@ -1,22 +1,27 @@
 '''
-Contour Plots ?
+Creates a contour plot of a selected weather variable at a height
+ determined by the user.
 '''
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import griddata
+from scipy.interpolate import griddata 
 import pickle
 from mpl_toolkits.basemap import Basemap
+from matplotlib import cm
+import copy
+
 
 DAY = '29'
-all_data = pickle.load(open("file" + DAY + ".p", "rb"))
+all_data = pickle.load(open("Pickle_Data_Files/file" + DAY + ".p", "rb"))
 
 # Getting non-repeating list of lat/long
-x = all_data['longitude']
-y = all_data['latitude']
+x = copy.deepcopy(all_data['longitude'])
+y = copy.deepcopy(all_data['latitude'])
 
-# Finding temperature for each lat/long at set altitude
-ALT = 15000 # Doesn't Change
+# Finding humidity for each lat/long at set altitude
+ALT = 5400 # Doesn't Change
+ALT_txt = int(ALT / 0.3048)
 h = []
 t = []
 Temperature = []
@@ -24,31 +29,31 @@ for i in range(len(x)):
     if i > 0:
         if x[i] == '':
             h.append(all_data['height'][i])
-            t.append(all_data['temperature'][i])
+            t.append(all_data['humidity'][i])
         else:
             Alt = ALT
-            loc = 0
-            while loc == 0:
-                try:
+            loc = -1
+            while loc == -1:
+                if Alt in h:
                     loc = h.index(Alt)
-                except:
+                else:
                     Alt -= 1
             Temperature.append( ((ALT - h[loc])*((t[loc+1] - t[loc])/(h[loc+1] - h[loc]))) + t[loc] )
             
             h = []
             h.append(all_data['height'][i])
             t = []
-            t.append(all_data['temperature'][i])
+            t.append(all_data['humidity'][i])
     else:
         h.append(all_data['height'][i])
-        t.append(all_data['temperature'][i])
+        t.append(all_data['humidity'][i])
 # Getting last Temperature value        
 Alt = ALT
-loc = 0
-while loc == 0:
-    try:
+loc = -1
+while loc == -1:
+    if Alt in h:
         loc = h.index(Alt)
-    except:
+    else:
         Alt -= 1
 Temperature.append( ((ALT - h[loc])*((t[loc+1] - t[loc])/(h[loc+1] - h[loc]))) + t[loc] )
 
@@ -71,38 +76,34 @@ y = np.array(y)
 Temperature = np.array(Temperature)
 z = Temperature
 
-
+# plot basemap
 plt.figure(figsize=(12,6))
-m = Basemap(projection='merc',llcrnrlat=25,urcrnrlat=50,
-            llcrnrlon=-130,urcrnrlon=-65,resolution='c')
+m = Basemap(projection='merc',llcrnrlat=13,urcrnrlat=58,
+            llcrnrlon=-144,urcrnrlon=-53,resolution='c')
 m.drawstates()
 m.drawcountries(linewidth=1.0)
 m.drawcoastlines()
 map_lon, map_lat = m(*(x,y))
         
 # target grid to interpolate to
-
 xi = np.linspace(map_lon.min(), map_lon.max(), numcols)
 yi = np.linspace(map_lat.min(), map_lat.max(), numrows)
-
 xi,yi = np.meshgrid(xi,yi)
-
 
 # interpolate
 zi = griddata((map_lon,map_lat),z,(xi,yi),method='linear')
-# print(xi)
-# print(yi) 
-# print(zi)
+
 # plot
-m.contourf(xi,yi,zi)
-cbar = plt.colorbar()
+bounds = np.arange(0,110,10)
+m.contourf(xi,yi,zi, cmap=cm.Blues, levels=bounds)
+cbar = m.colorbar()
 degree_sign = u'\N{DEGREE SIGN}'
-cbar.set_label("Temperature %sC" % degree_sign, fontsize=14)
-m.plot(map_lon,map_lat,'.k')
+# cbar.set_label("Temperature %sC" % degree_sign, fontsize=14)
+cbar.set_label("Relative Humidity (%)")
+m.plot(map_lon,map_lat,'.k',ms=1)
 
-# plt.xlabel('Longitude',fontsize=12)
-# plt.ylabel('Latitude',fontsize=12)
-plt.title('Contour Map Test - Temperature at %s meters' % ALT, fontsize=20)
+# plt.title('Contour Map Test - Temperature at %s feet' % ALT_txt, fontsize=20)
+plt.suptitle('Relative Humidity at %s feet' % ALT_txt, fontsize=20)
+plt.title('05/30/18 at 06 UTC', fontsize=12)
 plt.show()
-
 

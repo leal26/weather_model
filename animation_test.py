@@ -1,3 +1,9 @@
+'''
+Creates an animation of contour plots of a desired weather variable
+ over the continental US which starts at 50,000 feet and descends 
+ incrementally to 18,000 feet.
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -6,13 +12,17 @@ import pickle
 from mpl_toolkits.basemap import Basemap
 from matplotlib import cm
 import copy
+from matplotlib.animation import Pillow
 
 
 
 fig = plt.figure(figsize=(12,6))
 
-DAY = '30'
-all_data = pickle.load(open("file" + DAY + ".p", "rb"))
+DAY = '12'
+MONTH = '06'
+YEAR = '18'
+HOUR = '12'
+all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
 
 
 
@@ -129,8 +139,8 @@ degree_sign = u'\N{DEGREE SIGN}'
 cbar.set_label("Relative Humidity (%)")
 
 #FIXME - saving issue
-FFwriter = animation.FFMpegWriter(fps=1, extra_args=['-r', '25'])
-ani.save('test2.mp4', writer = FFwriter)
+gifName = YEAR + MONTH + DAY + HOUR + '.gif'
+ani.save(gifName, writer=PillowWriter())
 
 plt.show()
 

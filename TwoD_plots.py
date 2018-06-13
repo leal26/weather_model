@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 DAY = '29'
-all_data = pickle.load(open("file" + DAY + ".p", "rb"))
+all_data = pickle.load(open("Pickle_Data_Files/file" + DAY + ".p", "rb"))
 lat = all_data['latitude']
 
 lat0 = lat[0]

@@ -1,6 +1,7 @@
 """
-Code developed to obtain weather data online from twisterdata.com. 
-
+Code developed to scrape weather data online from TwisterData.com. 
+ Data is scraped from the input Date and Time.
+ Data is from the GFS weather model used by TwisterData.com.
 """
 
 import urllib
@@ -15,11 +16,12 @@ import numpy as np
 
 ### INPUT YEAR AND MONTH
 YEAR = '2018'
-MONTH = '05'
-### INPUT BEGIN AND END TIME 
-DAY = '30'
-HOUR = '06'
+MONTH = '06'
+### INPUT DAY AND HOUR 
+DAY = '13'
+HOUR = '12'
 
+start = '{:%H:%M:%S}'.format(datetime.datetime.now())
 
 # Initialize data dictionary
 all_data = {'latitude':[], 'longitude':[], 'pressure':[], 'height':[], 
@@ -134,7 +136,7 @@ rows = zip(all_data['latitude'], all_data['longitude'],
            all_data['wind_direction'], all_data['wind_speed'])
 
 # initializing csv file
-f = open("Twister" + YEAR + "_" + MONTH + "_" + DAY + ".csv","w")
+f = open("Twister" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".csv","w")
 f.write('Latitude' + ',' + 'Longtitude' + ',' + 'Pressure [hPa]' + ',' 
         + 'Height [m]' + ',' + 'Temperature [C]' + ',' 
         + 'Relative Humidity [%]' +  ',' + 'Wind Direction [deg]' +  ',' 
@@ -142,12 +144,15 @@ f.write('Latitude' + ',' + 'Longtitude' + ',' + 'Pressure [hPa]' + ','
 f.close()
 
 # adding data to csv file in table format
-with open("Twister" + YEAR + "_" + MONTH + "_" + DAY + ".csv", "a") as f:
+with open("Twister" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".csv", "a") as f:
         wtr= csv.writer(f)
         for row in rows:
             wtr.writerow(row)
 
 # creating pickle file for later use
-g = open("file" + DAY + ".p","wb")
+g = open("file" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
 pickle.dump(all_data,g)
 g.close()
+
+print start
+print('{:%H:%M:%S}'.format(datetime.datetime.now()))

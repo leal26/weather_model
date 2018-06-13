@@ -1,6 +1,9 @@
 '''
 Rounding to get plot instead of interpolating.
  Future work will use interpolation instead of rounding.
+ 
+ Creates a plot of the change in a desired weather variable vs. distance
+ as altitude and location above the Continental US changes.
 '''
 
 import pickle
@@ -12,14 +15,14 @@ from mpl_toolkits.basemap import Basemap
 
 # Get all_data from pickle
 DAY = '30'
-all_data = pickle.load(open("file" + DAY + ".p", "rb"))
+all_data = pickle.load(open("Pickle_Data_Files/file" + DAY + ".p", "rb"))
 
 # get flight plan from csv
 height = []
 lat = []
 lon = []
 dist = []
-flightplan = 'KJFK-KLAX'
+flightplan = 'MMMX-CYQB'
 filename = flightplan + '.csv'
 with open(filename, 'rb') as f:
     reader = csv.reader(f)

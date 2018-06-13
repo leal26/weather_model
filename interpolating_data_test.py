@@ -2,6 +2,10 @@
 Attempt to replicate result format from rounding_data_test.py
  using linear interpolation for altitude then double interpolation
  for latitude and longitude.
+ 
+ Creates a plot of the change in a desired weather variable vs. distance
+ as altitude and location above the Continental US changes using Linear
+ Interpolation.
 '''
 
 import pickle
@@ -15,7 +19,7 @@ import numpy as np
            
 # Get all_data from pickle
 DAY = '30'
-all_data = pickle.load(open("file" + DAY + ".p", "rb"))
+all_data = pickle.load(open("Pickle_Data_Files/file" + DAY + ".p", "rb"))
 
 # get flight plan from csv
 height = []

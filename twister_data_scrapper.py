@@ -64,14 +64,11 @@ def appendToDictionary(latitude, longitude):
         all_data['longitude'].append('')
         
 
-# X,Y Locations on TwisterData.com grid            
-# x = [212, 465, 444, 446, 456, 250, 216, 474, 611, 778]
-# y = [418, 439, 347, 331, 335, 278, 174, 233, 251, 151]
+# Lat, Lon Locations on TwisterData.com grid            
 x = np.linspace(13,58,46) #lat - (13,58)
 y = np.linspace(-144,-53,92) #lon - (-144,-53)
 
-counter = 0
-print(counter)
+
 for j in range(len(x)):
     for k in range(len(y)):
         X = str(x[j])

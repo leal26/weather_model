@@ -4,7 +4,7 @@ Code developed to scrape weather data online from TwisterData.com.
  Data is from the GFS weather model used by TwisterData.com.
 """
 
-import urllib
+import requests
 import csv
 from bs4 import BeautifulSoup
 import pickle
@@ -12,6 +12,7 @@ import unicodedata as ud
 import copy
 import datetime
 import numpy as np
+import functions
 
 
 ### INPUT YEAR AND MONTH
@@ -26,48 +27,10 @@ start = '{:%H:%M:%S}'.format(datetime.datetime.now())
 # Initialize data dictionary
 all_data = {'latitude':[], 'longitude':[], 'pressure':[], 'height':[], 
 			'temperature':[], 'humidity':[],'wind_direction':[], 
-            'wind_speed':[]}
-
-# Define Function to add data points to dictionary            
-def appendToDictionary(latitude, longitude):
-    all_data['latitude'].append(latitude)
-    all_data['longitude'].append(longitude)
-    
-    prevLength = len(all_data['pressure'])
-    
-    # Finding table data from accessed html file
-    table = soup.find("table", attrs={"class":"soundingTable"})
-    headings = [th.get_text() for th in table.find("tr").find_all("th")]
-    datasets = []
-    for row in table.find_all("tr")[1:]:
-        dataset = zip(headings, (td.get_text() for td in row.find_all("td")))
-        datasets.append(dataset)   
-    
-    # Adding each datapoint to dictionary
-    for i in range(len(datasets)):
-        for j in range(13):
-            tuple = datasets[i][j]
-            element = list(tuple)
-            if element[0] == 'PRES':
-                all_data['pressure'].append(float(element[1]))
-            elif element[0] == 'HGHT':
-                all_data['height'].append(float(element[1]))
-            elif element[0] == 'TEMP':
-                all_data['temperature'].append(float(element[1]))
-            elif element[0] == 'RELH':
-                all_data['humidity'].append(float(element[1]))
-            elif element[0] == 'DRCT':
-                all_data['wind_direction'].append(float(element[1]))
-            elif element[0] == 'SKNT':
-                all_data['wind_speed'].append(float(element[1]))
-
-    for i in range(len(all_data['pressure'])-1-prevLength):
-        all_data['latitude'].append('')
-        all_data['longitude'].append('')
-        
+            'wind_speed':[]}      
 
 # Lat, Lon Locations on TwisterData.com grid            
-x = np.linspace(13,58,46) #lat - (13,58)
+x = np.linspace(13,16,4) #lat - (13,58)
 y = np.linspace(-144,-53,92) #lon - (-144,-53)
 
 
@@ -76,16 +39,24 @@ for j in range(len(x)):
         X = str(x[j])
         Y = str(y[k])
         print X, Y
-        print('{:%H:%M:%S}'.format(datetime.datetime.now()))
+        # print('{:%H:%M:%S}'.format(datetime.datetime.now()))
         # Access Website
-        html = urllib.urlopen('http://www.twisterdata.com/index.php?'
+        try:
+            q = 0
+            while q < 1:
+                r = requests.get('http://www.twisterdata.com/index.php?'
                               + 'sounding.lat=' + X + '&sounding.lon=' + Y 
                               + '&prog=forecast&model=GFS&grid=3&model_yyyy='
                               + YEAR + '&model_mm=' + MONTH + '&model_dd=' 
                               + DAY + '&model_init_hh=' + HOUR + '&fhour=00'
                               + '&parameter=TMPF&level=2&unit=M_ABOVE_GROUND'
                               + '&maximize=n&mode=singlemap&sounding=y&output'
-                              + '=text&view=large&archive=false&sndclick=y')             
+                              + '=text&view=large&archive=false&sndclick=y', timeout=5)
+                q += 1
+        except:
+            print 'ERROR'
+                
+        html = r.text
         soup = BeautifulSoup(html, "html.parser")
         try:
             # Finding Latitude and Longitude for each accessed webpage
@@ -104,7 +75,7 @@ for j in range(len(x)):
             longnum = float(longnum)
             
             # add elements to dictionary
-            appendToDictionary(latitude, longitude)
+            functions.appendToDictionary(latitude, longitude)
                
             ''' NO LONGER NEEDED since lat and lon are changed in url
             ydict = copy.deepcopy(all_data)
@@ -150,7 +121,7 @@ with open("Twister" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".csv", "a")
             wtr.writerow(row)
 
 # creating pickle file for later use
-g = open("file" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
+g = open("file2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
 pickle.dump(all_data,g)
 g.close()
 

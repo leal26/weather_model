@@ -41,9 +41,9 @@ for j in range(len(x)):
         print X, Y
         # print('{:%H:%M:%S}'.format(datetime.datetime.now()))
         # Access Website
-        try:
-            q = 0
-            while q < 1:
+        q = 0
+        while q < 1:
+            try:
                 r = requests.get('http://www.twisterdata.com/index.php?'
                               + 'sounding.lat=' + X + '&sounding.lon=' + Y 
                               + '&prog=forecast&model=GFS&grid=3&model_yyyy='
@@ -53,8 +53,8 @@ for j in range(len(x)):
                               + '&maximize=n&mode=singlemap&sounding=y&output'
                               + '=text&view=large&archive=false&sndclick=y', timeout=5)
                 q += 1
-        except:
-            print 'ERROR'
+            except:
+                print 'ERROR'
                 
         html = r.text
         soup = BeautifulSoup(html, "html.parser")
@@ -121,7 +121,7 @@ with open("Twister" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".csv", "a")
             wtr.writerow(row)
 
 # creating pickle file for later use
-g = open("file2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
+g = open("file" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
 pickle.dump(all_data,g)
 g.close()
 

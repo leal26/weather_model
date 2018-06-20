@@ -1,20 +1,22 @@
 '''
 Code that consolidates all functions needed to run any file in
- weather_module repository.
+ weather_module repository in alphabetical order.
 '''
 import pickle
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import interpolate
 from scipy.interpolate import griddata 
 from mpl_toolkits.basemap import Basemap
 import functions
 
 
-
-# appendToDictionary is a function that appends the data scraped from
-# twisterdata.com to a dictionary for later use in this repository.            
+          
 def appendToDictionary(latitude, longitude):
+    ''' appendToDictionary appends the data scraped from twisterdata.com 
+    to a dictionary for later use in this repository.  
+    '''
     all_data['latitude'].append(latitude)
     all_data['longitude'].append(longitude)
     
@@ -49,33 +51,111 @@ def appendToDictionary(latitude, longitude):
     for i in range(len(all_data['pressure'])-1-prevLength):
         all_data['latitude'].append('')
         all_data['longitude'].append('')
+    
+    
+    
+def combineLatLon(lat, lon):
+    '''combineLatLon takes a list of latitudes and a list of longitudes 
+    that are the same length and combines them into a double list.
+    '''
+    w_latlon = []
+    for i in range(len(lat)):
+        w_latlon.append([lat[i], lon[i]])
+    
+    return w_latlon
 
+
+    
+def contourfGenerator(ALT):
+    '''contourfGenerator creates a contour plot for use in an animation
+    creator. It takes a list of integer altitudes as an input.
+    This function uses openPickle and myInterpolate.
+    '''
+    height, relh = functions.openPickle('12', '06', '2018', '12')[1:3]
+    lat, lon = functions.openPickle('12', '06', '2018', '12')[6:8]
+
+    # Finding humidity for each lat/long at set altitude
+    w_variable = functions.myInterpolate(lat, lon, relh, height, ALT)
+
+    # remove empty cells from lat/long
+    i = 0
+    while '' in lon:
+        if i > 0 and lon[i] == '':
+                lon.pop(i)
+                lat.pop(i)
+        else:
+            i += 1
+    numcols, numrows = len(lon), len(lat)
+
+    # Make lists into arrays to graph
+    lon = functions.makeFloats(lon)
+    lat = functions.makeFloats(lat)
+    lon = np.array(lon)
+    lat = np.array(lat)
+    z = w_variable
+    
+    m = Basemap(projection='merc',llcrnrlat=13,urcrnrlat=58,
+            llcrnrlon=-144,urcrnrlon=-53,resolution='c')
+    map_lon, map_lat = m(*(lon,lat))
         
-        
-# openPickle is a function to open the scraped data from the pickle and 
-# put the data into usable lists. Takes inputs strings DAY, MONTH, YEAR,
-# HOUR to identify filename.
-def openPickle(DAY, MONTH, YEAR, HOUR):
-    all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" 
-                                + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
+    # target grid to interpolate to
+    xi = np.linspace(map_lon.min(), map_lon.max(), numcols)
+    yi = np.linspace(map_lat.min(), map_lat.max(), numrows)
+    xi,yi = np.meshgrid(xi,yi)
     
-    w_temp = copy.deepcopy(all_data['temperature'])
-    w_height = copy.deepcopy(all_data['height'])
-    w_relh = copy.deepcopy(all_data['humidity'])
-    w_pres = copy.deepcopy(all_data['pressure'])
-    w_sknt = copy.deepcopy(all_data['wind_speed'])
-    w_drct = copy.deepcopy(all_data['wind_direction'])
-    w_lat = copy.deepcopy(all_data['latitude'])
-    w_lon = copy.deepcopy(all_data['longitude'])
-    
-    return w_temp, w_height, w_relh, w_pres, w_sknt, w_drct, w_lat, w_lon
+    # interpolate
+    zi = griddata((map_lon,map_lat),z,(xi,yi),method='linear')
+    return xi, yi, zi 
+
     
     
-   
-# makeFloats is a function that takes a weather variable as an input list and
-# makes every element in the list a float for use in mathematical calculations.
-# This function also converts any '' in the list to a 0.
-def makeFloats(w_var):    
+def getFlightPlan(Departure, Arrival):
+    '''getFlightPlan takes the departure and landing locations as 
+    inputs and outputs the latitude, longitude, altitude and distance 
+    information from the flight plan.
+    '''
+    filename = Departure + '-' + Arrival
+    
+    height = []
+    lat = []
+    lon = []
+    dist = []
+    with open('Flight_Plan_Files/' + filename, 'rb') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            height.append(row[2])
+            lat.append(row[3])
+            lon.append(row[4])
+            dist.append(row[5])
+            
+    # changing flight plan data to floats and making height meters
+    for i in range(len(height)):
+        height[i] = float(height[i])
+        height[i] = 0.3048 * height[i]
+        lat[i] = float(lat[i])
+        lon[i] = float(lon[i])
+        dist[i] = float(dist[i])
+    
+    return height, lat, lon, dist
+
+  
+    
+'''heightToMeters and heightToFeet are functions that convert a float input
+   height to meters or feet, respectively.'''
+def heightToMeters(height):
+    height = height / 0.3048
+    return height
+def heightToFeet(height):
+    height = height * 0.3048
+    return height
+ 
+ 
+ 
+def makeFloats(w_var):  
+    '''makeFloats takes a weather variable as an input list and makes every
+    element in the list a float for use in mathematical calculations. This
+    function also converts any '' in the list to a 0.
+    '''  
     for i in range(len(w_var)):
         if w_var[i] == '':
             w_var[i] = 0
@@ -86,13 +166,30 @@ def makeFloats(w_var):
     return w_var
  
 
-# myInterpolate is a function that executes a linear interpolation
-# for a desired weather variable at each sounding location. It
-# takes the inputs lat, lon, and height (usually from openPickle),
-# w_name (name of weather variable to interpoalte), and ALT (altitude).
-# If the desired altitude is below 3500 meters, the function outputs
-# the ground level data for the desired weather_variable.
+
+def makeShortList(lat, li):
+    ''' makeShortList makes a list of a weather variable at each latitude and
+    longitude location.
+    '''
+    for i in range(len(lat)):
+        if i > 0:
+            if lat[i] == 0 or lat[i] == '':
+                temp_li.append(li[i])
+            else:                  
+                return temp_li
+        else:
+            temp_li.append(li[i])
+ 
+ 
+ 
 def myInterpolate(lat, lon, w_name, height, ALT):
+    '''myInterpolate executes a linear interpolation for a desired weather
+    variable at each sounding location. It takes the inputs lat, lon, and 
+    height (usually from openPickle), w_name (name of weather variable to 
+    interpoalte), and ALT (altitude). If the desired altitude is below 
+    3500 meters, the function outputs the ground level data for the 
+    desired weather_variable.
+    '''
     h = []
     w = []
     w_variable = []
@@ -140,110 +237,105 @@ def myInterpolate(lat, lon, w_name, height, ALT):
     w_variable = np.array(w_variable)                  
     return w_variable
 
-
     
-# getFlightPlan is a function that takes the departure and landing locations
-# as inputs and outputs the latitude, longitude, altitude and distance 
-# information from the flight plan.
-def getFlightPlan(Departure, Arrival):
-    filename = Departure + '-' + Arrival
     
-    height = []
-    lat = []
-    lon = []
-    dist = []
-    with open('Flight_Plan_Files/' + filename, 'rb') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            height.append(row[2])
-            lat.append(row[3])
-            lon.append(row[4])
-            dist.append(row[5])
-            
-    # changing flight plan data to floats and making height meters for comparisons
-    for i in range(len(height)):
-        height[i] = float(height[i])
-        height[i] = 0.3048 * height[i]
-        lat[i] = float(lat[i])
-        lon[i] = float(lon[i])
-        dist[i] = float(dist[i])
+'''
+def openPickle(DAY, MONTH, YEAR, HOUR, outputs_of_interest = ['temperature', 'height']):
+    all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" 
+                                + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
     
-    return height, lat, lon, dist
-
-
+    if outputs_of_interest == 'all':
+        output = all_data
+    else:
+        output = {}
+        for key in outputs_of_interest:
+            output[key] = copy.deepcopy(all_data[key])
     
-# combineLatLon is a function that takes a list of latitudes and a list of
-# longitudes that are the same length and combines them into a double list.
-def combineLatLon(lat, lon):
-    w_latlon = []
+    return output
+    '''
+def openPickle(DAY, MONTH, YEAR, HOUR):
+    '''openPickle opens the scraped data from the pickle and put the data 
+    into usable lists. Takes inputs strings DAY, MONTH, YEAR, HOUR to
+    identify filename.
+    '''
+    all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" 
+                                + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
+    
+    w_temp = copy.deepcopy(all_data['temperature'])
+    w_height = copy.deepcopy(all_data['height'])
+    w_relh = copy.deepcopy(all_data['humidity'])
+    w_pres = copy.deepcopy(all_data['pressure'])
+    w_sknt = copy.deepcopy(all_data['wind_speed'])
+    w_drct = copy.deepcopy(all_data['wind_direction'])
+    w_lat = copy.deepcopy(all_data['latitude'])
+    w_lon = copy.deepcopy(all_data['longitude'])
+    
+    return w_temp, w_height, w_relh, w_pres, w_sknt, w_drct, w_lat, w_lon
+     
+     
+     
+def sBoomDictMaker(li, keyName, ALT, lat, lon, height, data):
+    ''' sBoomDictMaker takes a weather variable list, list keyName, and
+    a max altitude (ALT) as user defined inputs. It also requires the
+    existance of a dictionary data, and the lat, lon, and height lists
+    from the openPickle function. Using these, it makes a dictionary
+    with first key being a lat,lon point and second key being the 
+    name of the weather variable.
+    '''
+    temp_height = []
+    temp_li = []
+    li_combos = []
+    d = copy.deepcopy(data)
+    k = 0
     for i in range(len(lat)):
-        w_latlon.append([lat[i], lon[i]])
-    
-    return w_latlon
-
-    
-    
-# heightToMeters and heightToFeet are functions that convert a float input
-# height to meters or feet, respectively.
-def heightToMeters(height):
-    height = height / 0.3048
-    return height
-def heightToFeet(height):
-    height = height * 0.3048
-    return height
- 
-
- 
-# contourfGenerator is a function that creates a contour plot for use in
-# an animation creator. It takes a list of integer altitudes as an input.
-# This function uses openPickle and myInterpolate.
-def contourfGenerator(ALT):
-    height, relh = functions.openPickle('12', '06', '2018', '12')[1:3]
-    lat, lon = functions.openPickle('12', '06', '2018', '12')[6:8]
-
-    # Finding humidity for each lat/long at set altitude
-    w_variable = functions.myInterpolate(lat, lon, relh, height, ALT)
-
-    # remove empty cells from lat/long
-    i = 0
-    while '' in lon:
-        if i > 0 and lon[i] == '':
-                lon.pop(i)
-                lat.pop(i)
+        if i > 0:
+            if temp_height == []:
+                temp_height.append(height[i])
+                temp_li.append(li[i])
+                k += 1
+            elif lat[i] == 0 and temp_height[-1] < ALT:
+                temp_height.append(height[i])
+                temp_li.append(li[i])
+                k += 1
+            else:
+                # make ground level 0
+                for j in range(len(temp_height)):
+                    temp_height[j] = temp_height[j] - temp_height[0]
+                
+                f = interpolate.interp1d(temp_height[-2:], temp_li[-2:])
+                
+                temp_li[-1] = float(f(ALT))
+                temp_height[-1] = ALT
+                
+                temp_combo_li = functions.combineLatLon(temp_height, temp_li)
+                
+                key = '%i, %i' % (lat[i-k], lon[i-k])
+                if d:
+                    data[key][keyName] = temp_combo_li
+                else:
+                    data[key] = {keyName: temp_combo_li}
+                
+                temp_height = []
+                temp_li = []
+                k = 0
         else:
-            i += 1
-    numcols, numrows = len(lon), len(lat)
-
-    # Make lists into arrays to graph
-    lon = functions.makeFloats(lon)
-    lat = functions.makeFloats(lat)
-    lon = np.array(lon)
-    lat = np.array(lat)
-    z = w_variable
-    
-    m = Basemap(projection='merc',llcrnrlat=13,urcrnrlat=58,
-            llcrnrlon=-144,urcrnrlon=-53,resolution='c')
-    map_lon, map_lat = m(*(lon,lat))
-        
-    # target grid to interpolate to
-    xi = np.linspace(map_lon.min(), map_lon.max(), numcols)
-    yi = np.linspace(map_lat.min(), map_lat.max(), numrows)
-    xi,yi = np.meshgrid(xi,yi)
-    
-    # interpolate
-    zi = griddata((map_lon,map_lat),z,(xi,yi),method='linear')
-    return xi, yi, zi 
+            temp_height.append(height[i])
+            temp_li.append(li[i])
+            k += 1
+            
+    return data
 
 
     
-# threeDInterpolater is a function that finds the 4 closest points to a
-# latitude and longitude location along the flight path. Then, the function
-# linearly interpolates to find the desired weather variable at the height 
-# of the aircraft at each of the 4 closest points. With these, the function
-# executes a 2D linear interpolation to find the value of the weather_variable
-# at the location along the flight path.
 #FIXME - make me into a function pls
 def threeDInterpolater(x1, y1, lon, lat, height, w_latlon, w_lat, w_lon, w_height):
+    '''threeDInterpolater finds the 4 closest points to a latitude and longitude
+    location along the flight path. Then, the function linearly interpolates 
+    to find the desired weather variable at the height of the aircraft at 
+    each of the 4 closest points. With these, the function executes a 2D 
+    linear interpolation to find the value of the weather_variable at the 
+    location along the flight path.
+    '''
     if lon > x1 and lat > y1:
         x2 = x1 - 1
         y2 = y1 - 1

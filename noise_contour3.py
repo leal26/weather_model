@@ -16,29 +16,42 @@ import functions3
 
 # import pyLdB output
 # z = output
+DAY = '17'
+MONTH = '06'
+YEAR = '2018'
+HOUR = '12'
 
-lat, lon = functions3.openPickle('17','06','2018','12')[6:8]
 
-i = 0
-while '' in lon:
-    if i > 0 and lon[i] == '':
-            lon.pop(i)
-            lat.pop(i)
-    else:
-        i += 1
+noise_data = pickle.load(open("noise" + YEAR + "_" 
+                                + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
+
+                                
+#print(noise_data['noise'])
+lat = []
+lon = []
+latlon = copy.deepcopy(noise_data['latlon'])
+#print(latlon)
+for i in range(len(latlon)):
+    latlon_temp = [int(s) for s in latlon[i].split(',')]
+    lat.append(latlon_temp[0])
+    lon.append(latlon_temp[1])
+
 numcols, numrows = len(lon), len(lat)
+#print(lat,lon)
 
 # REMOVE this when z should be pyLdB input
-z = []
-for i in range(len(lat)):
-    z.append(random.randrange(0,100))
+z = copy.deepcopy(noise_data['noise'])
+# for i in range(len(lat)):
+    # z.append(random.randrange(0,100))
 
 # Make lists into arrays to graph
 lon = functions3.makeFloats(lon)
 lat = functions3.makeFloats(lat)
 lon = np.array(lon)
 lat = np.array(lat)
-z = np.array(z)
+# print(z)
+# print(len(z))
+# print(len(latlon))
 
 fig = plt.figure(figsize=(12,6))
 
@@ -71,5 +84,4 @@ degree_sign = '\N{DEGREE SIGN}'
 cbar.set_label("Loudness (dB)")
 
 plt.show()
-
 

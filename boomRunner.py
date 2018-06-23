@@ -98,7 +98,7 @@ noise_data = {'latlon':[], 'noise':[]}
 #g = open("noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","ab")
 
 counter = 0
-for i in range(3999,len(data.keys())):
+for i in range(3900,4000):
     print(i,list(data.keys())[i])
     #latlon.append(list(data.keys())[i])
     noise_data['latlon'].append(list(data.keys())[i])

@@ -24,12 +24,29 @@ HOUR = '12'
 filename = "noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR
 
 noise_data = pickle.load(open( filename + "_2300"+".p", "rb"))
-noise_data.update(pickle.load(open( filename + "_3300"+".p", "rb")))
-noise_data.update(pickle.load(open( filename + "_3700"+".p", "rb")))
-noise_data.update(pickle.load(open( filename + "_4000"+".p", "rb")))
-noise_data.update(pickle.load(open( filename + ".p", "rb")))
+print(len(noise_data['latlon']), len(noise_data['noise']))
+noise_data_3200 = pickle.load(open( filename + "_3200"+".p", "rb"))
+print(len(noise_data_3200['latlon']), len(noise_data_3200['noise']))
+noise_data_3300 = pickle.load(open( filename + "_3300"+".p", "rb"))
+noise_data_3600 = pickle.load(open( filename + "_3600"+".p", "rb"))
+noise_data_3700 = pickle.load(open( filename + "_3700"+".p", "rb"))
+print(len(noise_data_3700['latlon']), len(noise_data_3700['noise']))
+noise_data_3900 = pickle.load(open( filename + "_3900"+".p", "rb"))
+noise_data_4000 = pickle.load(open( filename + "_4000"+".p", "rb"))
+print(len(noise_data_4000['latlon']), len(noise_data_4000['noise']))
+noise_data_last = pickle.load(open( filename + "_last"+".p", "rb"))
+print(len(noise_data_last['latlon']), len(noise_data_last['noise']))
+for key in noise_data:
+    noise_data[key] += noise_data_3200[key]
+    noise_data[key] += noise_data_3300[key]
+    noise_data[key] += noise_data_3600[key]
+    noise_data[key] += noise_data_3700[key]
+    noise_data[key] += noise_data_3900[key]
+    noise_data[key] += noise_data_4000[key]
+    noise_data[key] += noise_data_last[key]
+print(len(noise_data['latlon']), len(noise_data['noise']))
             
- 
+
 #print(noise_data['noise'])
 lat = []
 lon = []
@@ -70,8 +87,8 @@ m.drawcoastlines()
 
 # Titles
 degree_sign = '\N{DEGREE SIGN}'
-plt.title('06/18/18 12:00:00 UTC', fontsize=12)
-plt.suptitle('Perceived Loudness using sBOOM and PLdB', fontsize=20)
+plt.title('Weather data from 06/18/18 12:00:00 UTC', fontsize=12)
+plt.suptitle('Perceived Loudness for 25D SST (45000 ft, M=1.6)', fontsize=20)
    
 # target grid to interpolate to
 xi = np.linspace(map_lon.min(), map_lon.max(), numcols)
@@ -85,7 +102,7 @@ m.contourf(xi, yi, zi, cmap=cm.coolwarm)#, levels=bounds)
 
 cbar = m.colorbar()
 degree_sign = '\N{DEGREE SIGN}'
-cbar.set_label("Loudness (dB)")
+cbar.set_label("Perceived Loudness, PLdB")
 
 plt.show()
 

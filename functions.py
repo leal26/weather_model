@@ -71,8 +71,8 @@ def contourfGenerator(ALT):
     creator. It takes a list of integer altitudes as an input.
     This function uses openPickle and myInterpolate.
     '''
-    height, relh = functions.openPickle('12', '06', '2018', '12')[1:3]
-    lat, lon = functions.openPickle('12', '06', '2018', '12')[6:8]
+    height, relh = functions.openPickle('18', '06', '2018', '12')[1:3]
+    lat, lon = functions.openPickle('18', '06', '2018', '12')[6:8]
 
     # Finding humidity for each lat/long at set altitude
     w_variable = functions.myInterpolate(lat, lon, relh, height, ALT)

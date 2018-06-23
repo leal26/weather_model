@@ -28,11 +28,11 @@ m.drawcoastlines()
 
 # Titles
 degree_sign = u'\N{DEGREE SIGN}'
-plt.title('06/12/18 12:00:00 UTC', fontsize=12)
+plt.title('06/18/18 12:00:00 UTC', fontsize=12)
 plt.suptitle('Relative Humidity', fontsize=20)
 
 # Animation
-ALT = [15240, 12000, 9000, 5905]
+ALT = [15240, 12000, 9000, 5905, 3500, 0]
 ims = []
 for i in range(len(ALT)):
     X, Y, Z = functions.contourfGenerator(ALT[i])
@@ -50,7 +50,7 @@ degree_sign = u'\N{DEGREE SIGN}'
 cbar.set_label("Relative Humidity (%)")
 
 # Saving as gif
-gifName = '18061212.gif'
+gifName = '18061812.gif'
 ani.save(gifName, writer=PillowWriter())
 
 plt.show()

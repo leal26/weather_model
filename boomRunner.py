@@ -7,19 +7,18 @@ from functions3 import *
 from rapidboom.pyldb import PyLdB
 from rapidboom.sboomwrapper import SboomWrapper
 
-import functions3
 
 
 
-def boomRunner(data,i):
+def boomRunner(data,cruise_altitude,i):
     '''
     Runs sBOOM
      Python3 Version
     '''
 
-    # Define parameters           
-    ALT_ft = 45000.
-    ALT = ALT_ft * 0.3048
+    # Define parameters 
+    ALT_ft = cruise_altitude / 0.3048
+    ALT = cruise_altitude
 
     CASE_DIR = "." # folder where all case files for the tools will be stored
     REF_LENGTH = 32.92
@@ -49,6 +48,7 @@ def boomRunner(data,i):
     humidity = data[key]['humidity']
 
     # update sBOOM settings and run
+    # FIXME - removed wind profile section
     sboom.set(mach_number=MACH,
               altitude=ALT_ft,
               propagation_start=R_over_L*REF_LENGTH*3.28084,
@@ -57,7 +57,7 @@ def boomRunner(data,i):
               input_xdim=2,
               signature=nearfield_sig,
               input_temp=temperature,
-              input_wind=wind,
+              input_wind=0,
               input_humidity=humidity)
 
     sboom_results = sboom.run()
@@ -70,7 +70,7 @@ def boomRunner(data,i):
     return noise_level
     
 
-DAY = '17'
+DAY = '18'
 MONTH = '06'
 YEAR = '2018'
 HOUR = '12'
@@ -79,29 +79,45 @@ ALT_ft = 45000.
 ALT = ALT_ft * 0.3048
     
 # Process data
-data = process_data(DAY, MONTH, YEAR, HOUR, ALT,
+# changes cruise_altitude (altitudes) to be altitude above 
+# ground level so that each iteration (latlon location) can be 
+# given as height above ground level
+data, altitudes = process_data(DAY, MONTH, YEAR, HOUR, ALT,
                  outputs_of_interest=['temperature','height','humidity',
                                     'wind_speed', 'latitude', 'longitude',
                                     'wind_direction', ])
                                                                       
-                                    
+# print(altitudes, len(altitudes))
+
+# print(list(data.keys()))                                    
 noise = []
 latlon = []
 
 noise_data = {'latlon':[], 'noise':[]}
 #print(list(data.keys()))
+#g = open("noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","ab")
 
-for i in range(100):
+counter = 0
+for i in range(3999,len(data.keys())):
+    print(i,list(data.keys())[i])
     #latlon.append(list(data.keys())[i])
     noise_data['latlon'].append(list(data.keys())[i])
     #noise.append(boomRunner(data,i))
-    noise_data['noise'].append(boomRunner(data,i))
+    noise_data['noise'].append(boomRunner(data,altitudes[i],i))
+    # pickle.dump(noise_data,g)
+    if (i+1) % 100 == 0:
+        g = open("noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + "_"+ str(i+1) +".p","wb")
+        pickle.dump(noise_data,g)
+        g.close() 
+        # noise_data = {'latlon':[], 'noise':[]}
+        counter += 1
+    
                    
 # print(latlon, noise)
 # print(len(noise))
 # print(len(noise_data['noise']))
 
-g = open("noise" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
+g = open("noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
 pickle.dump(noise_data,g)
 g.close()
                                     

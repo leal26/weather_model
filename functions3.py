@@ -166,7 +166,6 @@ def makeFloats(w_var):
     for i in range(len(w_var)):
         if w_var[i] == '':
             w_var[i] = 0
-            w_var[i] = 0
         
         w_var[i] = float(w_var[i])
         
@@ -287,9 +286,9 @@ def process_data(day, month, year, hour, altitude,
         lon = output['longitude']
         height = output['height']
         if key not in ['latitude', 'longitude','height']:
-            data = output_for_sBoom(output[key], key, altitude, lat, 
+            data, ground_altitudes = output_for_sBoom(output[key], key, altitude, lat, 
                                     lon, height, data)
-    return data
+    return data, ground_altitudes
     
   
 def openPickle(DAY, MONTH, YEAR, HOUR,):
@@ -326,48 +325,78 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
     # print('height', height)
     temp_height = []
     temp_li = []
-    li_combos = []
+    temp_combo_li = []
     d = copy.deepcopy(data)
     k = 0
-    for i in range(len(lat)):
-
+    i = 0
+    while i < len(lat):
         if i > 0:
-            if temp_height == []:
-                temp_height.append(height[i])
+            # appending to mini-list
+            if lat[i] == 0:
+                temp_height.append(height[i] - ground_level)
                 temp_li.append(li[i])
                 k += 1
-            elif lat[i] == 0 and temp_height[-1] < ALT:
-                temp_height.append(height[i])
-                temp_li.append(li[i])
-                k += 1
-            else:
-                # make ground level 0
-                for j in range(len(temp_height)):
-                    temp_height[j] = temp_height[j] - temp_height[0]
-
-                f = interpolate.interp1d(temp_height[-2:], temp_li[-2:])
+                i += 1
+            else:                               
+                # combining height and weather mini lists for storage
+                temp_combo_li = combineLatLon(temp_height, temp_li)
                 
-                temp_li[-1] = float(f(ALT))
-                temp_height[-1] = ALT
+                # getting to next latlon value in big list if not already there
+                # while lat[i] == 0:
+                    # i += 1
+                    # k += 1
                 
-                temp_combo_li = combineLatLon(temp_height, 
-                                                        temp_li)
-                
+                # key is location of previous latlon in big list
                 key = '%i, %i' % (lat[i-k], lon[i-k])
+                
+                # appending mini-list to dictionary at latlon key
                 if d:
                     data[key][keyName] = temp_combo_li
                 else:
                     data[key] = {keyName: temp_combo_li}
                 
+                # clearing mini-list and restarting
                 temp_height = []
                 temp_li = []
+                temp_combo_li = []
                 k = 0
+                temp_height.append(height[i])
+                ground_level = temp_height[0]
+                ground_altitudes.append(ALT - ground_level)
+                temp_height[0] = temp_height[0] - ground_level
+                temp_li.append(li[i])
+                k += 1
+                i += 1
+        
+        # getting first element in big list
         else:
             temp_height.append(height[i])
+            ground_level = temp_height[0]
+            ground_altitudes = [ALT - ground_level]
+            temp_height[0] = temp_height[0] - ground_level
             temp_li.append(li[i])
             k += 1
+            i += 1
             
-    return data
+    # getting data from final mini-list
+
+    # combinging height and weather mini-lists for storage
+    temp_combo_li = combineLatLon(temp_height, temp_li)
+
+    # dictionary key
+    key = '%i, %i' % (lat[i-k], lon[i-k])
+
+    # making dictionary
+    if d:
+        data[key][keyName] = temp_combo_li
+    else:
+        data[key] = {keyName: temp_combo_li}
+            
+            
+    # for key_ll in data.keys():
+        # key_prop in data[key_ll].keys():
+            # for i in range(len(data[key_ll][key_prop])):
+    return data, ground_altitudes
 
 def windToXY(sknt, drct):
     ''' windToXY takes wind speed in knots and wind direction in degrees

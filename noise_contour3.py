@@ -16,16 +16,20 @@ import functions3
 
 # import pyLdB output
 # z = output
-DAY = '17'
+DAY = '18'
 MONTH = '06'
 YEAR = '2018'
 HOUR = '12'
 
+filename = "noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR
 
-noise_data = pickle.load(open("noise" + YEAR + "_" 
-                                + MONTH + "_" + DAY + "_" + HOUR + ".p", "rb"))
-
-                                
+noise_data = pickle.load(open( filename + "_2300"+".p", "rb"))
+noise_data.update(pickle.load(open( filename + "_3300"+".p", "rb")))
+noise_data.update(pickle.load(open( filename + "_3700"+".p", "rb")))
+noise_data.update(pickle.load(open( filename + "_4000"+".p", "rb")))
+noise_data.update(pickle.load(open( filename + ".p", "rb")))
+            
+ 
 #print(noise_data['noise'])
 lat = []
 lon = []
@@ -66,8 +70,8 @@ m.drawcoastlines()
 
 # Titles
 degree_sign = '\N{DEGREE SIGN}'
-plt.title('06/17/18 12:00:00 UTC', fontsize=12)
-plt.suptitle('Projected Loudness using sBoom and pyLdB', fontsize=20)
+plt.title('06/18/18 12:00:00 UTC', fontsize=12)
+plt.suptitle('Perceived Loudness using sBOOM and PLdB', fontsize=20)
    
 # target grid to interpolate to
 xi = np.linspace(map_lon.min(), map_lon.max(), numcols)

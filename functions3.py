@@ -75,11 +75,6 @@ def contourfGenerator(ALT):
     '''
     height, relh = openPickle('17', '06', '2018', '12')[1:3]
     lat, lon = openPickle('17', '06', '2018', '12')[6:8]
-    # data = openPickle('12', '06', '2018', '12','all')
-    # height = data['height']
-    # relh = data['relh']
-    # lat = data['lat']
-    # lon = data['lon']
 
     # Finding humidity for each lat/long at set altitude
     w_variable = myInterpolate(lat, lon, relh, height, ALT)
@@ -121,7 +116,7 @@ def getFlightPlan(Departure, Arrival):
     inputs and outputs the latitude, longitude, altitude and distance 
     information from the flight plan.
     '''
-    filename = Departure + '-' + Arrival
+    filename = Departure + '-' + Arrival + '.csv'
     
     height = []
     lat = []
@@ -199,7 +194,7 @@ def myInterpolate(lat, lon, w_name, height, ALT):
     h = []
     w = []
     w_variable = []
-    if ALT > 3500:
+    if ALT >= 3500:
         for i in range(len(lon)):
             if i > 0:
                 if lon[i] == '':
@@ -243,6 +238,122 @@ def myInterpolate(lat, lon, w_name, height, ALT):
     w_variable = np.array(w_variable)                  
     return w_variable
 
+      
+  
+def openPickle(DAY, MONTH, YEAR, HOUR,):
+    '''openPickle opens the scraped data from the pickle and put the data 
+    into usable lists. Takes input strings DAY, MONTH, YEAR, HOUR to
+    identify filename.
+    '''
+    all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" 
+                                + MONTH + "_" + DAY + "_" + HOUR + ".p",
+                                "rb"))
+    
+    w_temp = copy.deepcopy(all_data['temperature'])
+    w_height = copy.deepcopy(all_data['height'])
+    w_relh = copy.deepcopy(all_data['humidity'])
+    w_pres = copy.deepcopy(all_data['pressure'])
+    w_sknt = copy.deepcopy(all_data['wind_speed'])
+    w_drct = copy.deepcopy(all_data['wind_direction'])
+    w_lat = copy.deepcopy(all_data['latitude'])
+    w_lon = copy.deepcopy(all_data['longitude'])
+    
+    return w_temp, w_height, w_relh, w_pres, w_sknt, w_drct, w_lat,w_lon
+  
+     
+     
+def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
+    ''' sBoomDictMaker takes a weather variable list, list keyName, and
+    a max altitude (ALT) as user defined inputs. It also requires the
+    existance of a dictionary data, and the lat, lon, and height lists
+    from the openPickle function. Using these, it makes a dictionary
+    with first key being a lat,lon point and second key being the 
+    name of the weather variable.
+    '''
+    temp_height = []
+    temp_li = []
+    temp_combo_li = []
+    d = copy.deepcopy(data)
+    k = 0
+    i = 0
+    while i < len(lat):
+        if i > 0:
+            # appending to mini-list
+            if lat[i] == 0:
+                temp_height.append(height[i] - ground_level)
+                temp_li.append(li[i])
+                k += 1
+                i += 1
+            else:                               
+                # combining height and weather mini lists for storage
+                temp_combo_li = combineLatLon(temp_height, temp_li)
+                
+                # making sure first two heights aren't the same
+                if temp_combo_li[0][0] == temp_combo_li[1][0]:
+                    temp_combo_li.pop(0)
+                    
+                # TEMPORARY TEST-forcing list to be a certain length    
+                # while len(temp_combo_li) > 20:
+                    # temp_combo_li.pop()
+                    
+                
+                # getting to next latlon value in big list if not already there
+                # while lat[i] == 0:
+                    # i += 1
+                    # k += 1
+                
+                # key is location of previous latlon in big list
+                key = '%i, %i' % (lat[i-k], lon[i-k])
+                
+                # appending mini-list to dictionary at latlon key
+                if d:
+                    data[key][keyName] = temp_combo_li
+                else:
+                    data[key] = {keyName: temp_combo_li}
+                
+                # clearing mini-list and restarting
+                temp_height = []
+                temp_li = []
+                temp_combo_li = []
+                k = 0
+                temp_height.append(height[i])
+                ground_level = temp_height[0]
+                ground_altitudes.append(ALT - ground_level)
+                temp_height[0] = temp_height[0] - ground_level
+                temp_li.append(li[i])
+                k += 1
+                i += 1
+        
+        # getting first element in big list
+        else:
+            temp_height.append(height[i])
+            ground_level = temp_height[0]
+            ground_altitudes = [ALT - ground_level]
+            temp_height[0] = temp_height[0] - ground_level
+            temp_li.append(li[i])
+            k += 1
+            i += 1
+            
+    # getting data from final mini-list
+    temp_combo_li = combineLatLon(temp_height, temp_li)
+    # making sure first two heights aren't the same
+    if temp_combo_li[0][0] == temp_combo_li[1][0]:
+        temp_combo_li.pop(0)
+        
+    # while len(temp_combo_li) > 20:
+        # temp_combo_li.pop()
+
+    # dictionary key
+    key = '%i, %i' % (lat[i-k], lon[i-k])
+
+    # making dictionary
+    if d:
+        data[key][keyName] = temp_combo_li
+    else:
+        data[key] = {keyName: temp_combo_li}
+            
+    return data, ground_altitudes
+    
     
     
 def process_data(day, month, year, hour, altitude,
@@ -285,119 +396,14 @@ def process_data(day, month, year, hour, altitude,
         lat = output['latitude']
         lon = output['longitude']
         height = output['height']
-        if key not in ['latitude', 'longitude','height']:
-            data, ground_altitudes = output_for_sBoom(output[key], key, altitude, lat, 
+        if key not in ['latitude', 'longitude', 'height']:
+            data, ground_altitudes = output_for_sBoom(output[key],
+                                    key, altitude, lat, 
                                     lon, height, data)
     return data, ground_altitudes
+
     
-  
-def openPickle(DAY, MONTH, YEAR, HOUR,):
-    '''openPickle opens the scraped data from the pickle and put the data 
-    into usable lists. Takes input strings DAY, MONTH, YEAR, HOUR to
-    identify filename.
-    '''
-    all_data = pickle.load(open("Pickle_Data_Files/file" + YEAR + "_" 
-                                + MONTH + "_" + DAY + "_" + HOUR + ".p",
-                                "rb"))
     
-    w_temp = copy.deepcopy(all_data['temperature'])
-    w_height = copy.deepcopy(all_data['height'])
-    w_relh = copy.deepcopy(all_data['humidity'])
-    w_pres = copy.deepcopy(all_data['pressure'])
-    w_sknt = copy.deepcopy(all_data['wind_speed'])
-    w_drct = copy.deepcopy(all_data['wind_direction'])
-    w_lat = copy.deepcopy(all_data['latitude'])
-    w_lon = copy.deepcopy(all_data['longitude'])
-    
-    return w_temp, w_height, w_relh, w_pres, w_sknt, w_drct, w_lat,w_lon
-  
-     
-     
-def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
-    ''' sBoomDictMaker takes a weather variable list, list keyName, and
-    a max altitude (ALT) as user defined inputs. It also requires the
-    existance of a dictionary data, and the lat, lon, and height lists
-    from the openPickle function. Using these, it makes a dictionary
-    with first key being a lat,lon point and second key being the 
-    name of the weather variable.
-    '''
-    # print('li',li)
-    # print('height', height)
-    temp_height = []
-    temp_li = []
-    temp_combo_li = []
-    d = copy.deepcopy(data)
-    k = 0
-    i = 0
-    while i < len(lat):
-        if i > 0:
-            # appending to mini-list
-            if lat[i] == 0:
-                temp_height.append(height[i] - ground_level)
-                temp_li.append(li[i])
-                k += 1
-                i += 1
-            else:                               
-                # combining height and weather mini lists for storage
-                temp_combo_li = combineLatLon(temp_height, temp_li)
-                
-                # getting to next latlon value in big list if not already there
-                # while lat[i] == 0:
-                    # i += 1
-                    # k += 1
-                
-                # key is location of previous latlon in big list
-                key = '%i, %i' % (lat[i-k], lon[i-k])
-                
-                # appending mini-list to dictionary at latlon key
-                if d:
-                    data[key][keyName] = temp_combo_li
-                else:
-                    data[key] = {keyName: temp_combo_li}
-                
-                # clearing mini-list and restarting
-                temp_height = []
-                temp_li = []
-                temp_combo_li = []
-                k = 0
-                temp_height.append(height[i])
-                ground_level = temp_height[0]
-                ground_altitudes.append(ALT - ground_level)
-                temp_height[0] = temp_height[0] - ground_level
-                temp_li.append(li[i])
-                k += 1
-                i += 1
-        
-        # getting first element in big list
-        else:
-            temp_height.append(height[i])
-            ground_level = temp_height[0]
-            ground_altitudes = [ALT - ground_level]
-            temp_height[0] = temp_height[0] - ground_level
-            temp_li.append(li[i])
-            k += 1
-            i += 1
-            
-    # getting data from final mini-list
-
-    # combinging height and weather mini-lists for storage
-    temp_combo_li = combineLatLon(temp_height, temp_li)
-
-    # dictionary key
-    key = '%i, %i' % (lat[i-k], lon[i-k])
-
-    # making dictionary
-    if d:
-        data[key][keyName] = temp_combo_li
-    else:
-        data[key] = {keyName: temp_combo_li}
-            
-            
-    # for key_ll in data.keys():
-        # key_prop in data[key_ll].keys():
-            # for i in range(len(data[key_ll][key_prop])):
-    return data, ground_altitudes
-
 def windToXY(sknt, drct):
     ''' windToXY takes wind speed in knots and wind direction in degrees
     clockwise from North lists and converts them to wind velocities in
@@ -412,8 +418,17 @@ def windToXY(sknt, drct):
     # directions are from North, clockwise so x is sin(drct)
     wind_x = wind_speed*np.sin(wind_direction)
     wind_y = wind_speed*np.cos(wind_direction)
+    
+    # making sure there is no -0.0 value in wind lists
+    # for i in range(len(wind_x)):
+        # if wind_x[i] == 0:
+            # wind_x[i] = abs(wind_x[i])
+        # if wind_y[i] == 0:
+            # wind_y[i] = abs(wind_y[i])
 
     return wind_x, wind_y
+    
+    
     
 #FIXME - make me into a function pls
 def threeDInterpolater(x1, y1, lon, lat, height, w_latlon, w_lat, w_lon,
@@ -516,11 +531,5 @@ def threeDInterpolater(x1, y1, lon, lat, height, w_latlon, w_lat, w_lon,
     
     return relh
 
-    
-    
-    
-    
-    
-    
     
     

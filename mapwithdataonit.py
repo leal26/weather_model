@@ -22,7 +22,7 @@ m.drawcountries(linewidth=1.0)
 m.drawcoastlines()
 
 # generate grid for contourf
-ALT = 0
+ALT = 3499
 xi, yi, zi = functions.contourfGenerator(ALT)
 
 # apply contourf to basemap

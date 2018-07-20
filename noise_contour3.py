@@ -46,8 +46,11 @@ for key in noise_data:
     noise_data[key] += noise_data_4000[key]
     noise_data[key] += noise_data_last[key]
 print(len(noise_data['latlon']), len(noise_data['noise']))
+'''      
+# g = open("noise_single" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
+# pickle.dump(noise_data,g)
+# g.close()
             
-'''
 noise_data = pickle.load(open(filename + '.p','rb'))
 #print(noise_data['noise'])
 lat = []
@@ -90,7 +93,7 @@ m.drawcoastlines()
 # Titles
 degree_sign = '\N{DEGREE SIGN}'
 plt.title('Weather data from 06/18/18 12:00:00 UTC', fontsize=12)
-plt.suptitle('Perceived Loudness for N+2 SST (20000 ft, M=1.6)', fontsize=20)
+plt.suptitle('Perceived Loudness for 25D SST (45000 ft, M=1.6)', fontsize=20)
    
 # target grid to interpolate to
 xi = np.linspace(map_lon.min(), map_lon.max(), numcols)
@@ -101,7 +104,8 @@ xi,yi = np.meshgrid(xi,yi)
 zi = griddata((map_lon,map_lat),z,(xi,yi),method='linear')
 
 # contour plot
-m.contourf(xi, yi, zi, cmap=cm.coolwarm)#, levels=bounds)
+bounds = np.arange(72,92,2)
+m.contourf(xi, yi, zi, cmap=cm.coolwarm, levels=bounds)
 
 # colorbar
 cbar = m.colorbar()

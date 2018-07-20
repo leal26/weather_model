@@ -6,10 +6,12 @@ Code that consolidates all functions3 needed to run any file in
 import pickle
 import copy
 import math
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
-from scipy.interpolate import griddata 
+from scipy.interpolate import griddata
+from scipy.interpolate import interp1d 
 from mpl_toolkits.basemap import Basemap
 
 
@@ -152,6 +154,41 @@ def heightToFeet(height):
     return height
  
  
+ 
+def MachModifier(direction, Mach, ALT, wind):
+    '''Takes a direction of the aircraft in degrees counterclockwise
+        from East (+x) and outputs a modified Mach number based on the 
+        wind speed at the altitude of the aircraft.'''
+    
+    # find wind at altitude with linear interpolation
+    wind_height = []
+    wind_x = []
+    wind_y = []
+    for i in range(len(wind)):
+        wind_height.append(wind[i][0])
+        wind_x.append(wind[i][1])
+        wind_y.append(wind[i][2])
+    
+    f_x = interp1d(wind_height, wind_x)
+    f_y = interp1d(wind_height, wind_y)
+    
+    x_wind = f_x(ALT)
+    y_wind = f_y(ALT)
+    
+    
+    theta = math.radians(direction) #making direction radians
+    velocity = 340.2778 * Mach #converting Mach number to m/s
+    
+    # Finding new speed of aircraft based on wind speed
+    mach_new1 = velocity + (x_wind*np.cos(theta))
+    mach_new = mach_new1 + (y_wind*np.sin(theta))
+    
+    # converting from m/s back to mach
+    mach_new = mach_new / 340.2778
+    
+    return mach_new
+
+    
  
 def makeFloats(w_var):  
     '''makeFloats takes a weather variable as an input list and makes 

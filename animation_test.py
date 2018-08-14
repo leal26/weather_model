@@ -32,7 +32,7 @@ plt.title('06/18/18 12:00:00 UTC', fontsize=12)
 plt.suptitle('Relative Humidity', fontsize=20)
 
 # Animation
-ALT = [15240, 12000, 9000, 5905, 3500, 0]
+ALT = [15240, 12000, 9000, 5905, 4000, 0]
 ims = []
 for i in range(len(ALT)):
     X, Y, Z = functions.contourfGenerator(ALT[i])

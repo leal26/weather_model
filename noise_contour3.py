@@ -21,8 +21,9 @@ MONTH = '06'
 YEAR = '2018'
 HOUR = '12'
 
-filename = "noise2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR
-
+filename = "noise_test" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR
+'''
+# combining pieces of noise data output files
 noise_data = pickle.load(open( filename + "_2300"+".p", "rb"))
 print(len(noise_data['latlon']), len(noise_data['noise']))
 noise_data_3200 = pickle.load(open( filename + "_3200"+".p", "rb"))
@@ -45,8 +46,12 @@ for key in noise_data:
     noise_data[key] += noise_data_4000[key]
     noise_data[key] += noise_data_last[key]
 print(len(noise_data['latlon']), len(noise_data['noise']))
+'''      
+# g = open("noise_single" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p","wb")
+# pickle.dump(noise_data,g)
+# g.close()
             
-
+noise_data = pickle.load(open(filename + '.p','rb'))
 #print(noise_data['noise'])
 lat = []
 lon = []
@@ -98,8 +103,11 @@ xi,yi = np.meshgrid(xi,yi)
 # interpolate
 zi = griddata((map_lon,map_lat),z,(xi,yi),method='linear')
 
-m.contourf(xi, yi, zi, cmap=cm.coolwarm)#, levels=bounds)
+# contour plot
+bounds = np.arange(72,92,2)
+m.contourf(xi, yi, zi, cmap=cm.coolwarm, levels=bounds)
 
+# colorbar
 cbar = m.colorbar()
 degree_sign = '\N{DEGREE SIGN}'
 cbar.set_label("Perceived Loudness, PLdB")

@@ -70,6 +70,11 @@ sboom.set(mach_number=MACH,
 
 sboom_results = sboom.run()
 ground_sig = sboom_results["signal_0"]["ground_sig"]
+print(ground_sig)
+
+g = open("pyldb_input_ex.p","wb")
+pickle.dump(ground_sig,g)
+g.close()
 
 # grab the loudness level
 # noise_level = sboom_results["signal_0"]["C_weighted"]

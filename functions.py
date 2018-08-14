@@ -5,8 +5,11 @@ Code that consolidates all functions needed to run any file in
 import pickle
 import copy
 import math
+<<<<<<< HEAD
 import csv
 from bs4 import BeautifulSoup as soup
+=======
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -28,10 +31,17 @@ def appendToDictionary(latitude, longitude, all_data):
     headings = [th.get_text() for th in table.find("tr").find_all("th")]
     datasets = []
     for row in table.find_all("tr")[1:]:
+<<<<<<< HEAD
         dataset = zip(headings, (td.get_text()
                                  for td in row.find_all("td")))
         datasets.append(dataset)
 
+=======
+        dataset = zip(headings, (td.get_text() 
+                            for td in row.find_all("td")))
+        datasets.append(dataset)   
+    
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
     # Adding each datapoint to dictionary
     for i in range(len(datasets)):
         for j in range(13):
@@ -239,7 +249,12 @@ def myInterpolate(lat, lon, w_name, height, ALT):
     w_variable = np.array(w_variable)
     return w_variable
 
+<<<<<<< HEAD
 
+=======
+    
+    
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
 def openPickle(DAY, MONTH, YEAR, HOUR):
     '''openPickle opens the scraped data from the pickle and put the data
     into usable lists. Takes inputs strings DAY, MONTH, YEAR, HOUR to
@@ -258,8 +273,14 @@ def openPickle(DAY, MONTH, YEAR, HOUR):
     w_lon = copy.deepcopy(all_data['longitude'])
 
     return w_temp, w_height, w_relh, w_pres, w_sknt, w_drct, w_lat, w_lon
+<<<<<<< HEAD
 
 
+=======
+    
+    
+    
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
 def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
     ''' sBoomDictMaker takes a weather variable list, list keyName, and
     a max altitude (ALT) as user defined inputs. It also requires the
@@ -276,8 +297,11 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
     d = copy.deepcopy(data)
     k = 0
     i = 0
+<<<<<<< HEAD
     ground_level = 0
     ground_altitudes = []
+=======
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
     while i < len(lat):
         if i > 0:
             # appending to mini-list
@@ -286,6 +310,7 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
                 temp_li.append(li[i])
                 k += 1
                 i += 1
+<<<<<<< HEAD
             else:
                 # combining height and weather mini lists for storage
                 temp_combo_li = combineLatLon(temp_height, temp_li)
@@ -298,12 +323,30 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
                 # key is location of previous latlon in big list
                 key = '%i, %i' % (lat[i-k], lon[i-k])
 
+=======
+            else:                               
+                # combining height and weather mini lists for storage
+                temp_combo_li = combineLatLon(temp_height, temp_li)
+                
+                # getting to next latlon value in big list if not already there
+                # while lat[i] == 0:
+                    # i += 1
+                    # k += 1
+                
+                # key is location of previous latlon in big list
+                key = '%i, %i' % (lat[i-k], lon[i-k])
+                
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
                 # appending mini-list to dictionary at latlon key
                 if d:
                     data[key][keyName] = temp_combo_li
                 else:
                     data[key] = {keyName: temp_combo_li}
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
                 # clearing mini-list and restarting
                 temp_height = []
                 temp_li = []
@@ -316,7 +359,11 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
                 temp_li.append(li[i])
                 k += 1
                 i += 1
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
         # getting first element in big list
         else:
             temp_height.append(height[i])
@@ -326,12 +373,102 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
             temp_li.append(li[i])
             k += 1
             i += 1
+<<<<<<< HEAD
 
+    # getting data from final mini-list
+=======
+            
     # getting data from final mini-list
 
     # combinging height and weather mini-lists for storage
     temp_combo_li = combineLatLon(temp_height, temp_li)
 
+    # dictionary key
+    key = '%i, %i' % (lat[i-k], lon[i-k])
+
+    # making dictionary
+    if d:
+        data[key][keyName] = temp_combo_li
+    else:
+        data[key] = {keyName: temp_combo_li}
+            
+            
+    # for key_ll in data.keys():
+        # key_prop in data[key_ll].keys():
+            # for i in range(len(data[key_ll][key_prop])):
+    return data, ground_altitudes
+    
+    
+    
+def process_data(day, month, year, hour, altitude,
+                 outputs_of_interest=['temperature','height',
+                                      'humidity', 'wind_speed',
+                                      'wind_direction', 'pressure',
+                                      'latitude', 'longitude']):
+    ''' process_data makes a dictionary output that contains the lists
+    specified by the strings given in outputs_of_interest
+    '''
+
+    all_data = pickle.load(open("Pickle_Data_Files/file" + year + 
+                           "_" + month + "_" + day + "_" + hour + 
+                           ".p",'rb'))
+  
+    # Reading data for selected properties
+    if outputs_of_interest == 'all':
+        output = all_data
+    else:
+        output = {}
+        
+        for key in outputs_of_interest:
+            output[key] = copy.deepcopy(all_data[key])
+            
+    # Make everything floats
+    for key in outputs_of_interest:
+        output[key] = makeFloats(output[key])
+        
+    # Convert wind data
+    wind_x, wind_y = windToXY(output['wind_speed'], 
+                              output['wind_direction'])
+    output['wind_x']=wind_x
+    output['wind_y']=wind_y
+    output.pop('wind_speed', None)
+    output.pop('wind_direction', None)
+
+    # Prepare for sBOOM
+    data = {}
+    for key in output.keys():    
+        lat = output['latitude']
+        lon = output['longitude']
+        height = output['height']
+        if key not in ['latitude', 'longitude','height']:
+            data, ground_altitudes = output_for_sBoom(output[key], key, altitude, lat, 
+                                    lon, height, data)
+    return data, ground_altitudes
+
+    
+    
+def windToXY(sknt, drct):
+    ''' windToXY takes wind speed in knots and wind direction in degrees
+    clockwise from North lists and converts them to wind velocities in
+    m/s along the x (East) and y (North) axes
+    '''
+
+    # conversion to m/s
+    wind_speed = np.array([x*0.51444 for x in sknt])
+    # converting degrees to radians
+    wind_direction = np.array([math.radians(x) for x in drct])
+
+    # directions are from North, clockwise so x is sin(drct)
+    wind_x = wind_speed*np.sin(wind_direction)
+    wind_y = wind_speed*np.cos(wind_direction)
+
+    return wind_x, wind_y
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
+
+    # combinging height and weather mini-lists for storage
+    temp_combo_li = combineLatLon(temp_height, temp_li)
+
+<<<<<<< HEAD
     # dictionary key
     key = '%i, %i' % (lat[i-k], lon[i-k])
 
@@ -415,6 +552,12 @@ def windToXY(sknt, drct):
 # FIXME - make me into a function pls
 def threeDInterpolater(x1, y1, lon, lat, height, w_latlon, w_lat,
                        w_lon, w_height, w_relh):
+=======
+    
+#FIXME - make me into a function pls
+def threeDInterpolater(x1, y1, lon, lat, height, w_latlon, w_lat,
+                       w_lon, w_height):
+>>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
     '''threeDInterpolater finds the 4 closest points to a latitude and longitude
     location along the flight path. Then, the function linearly interpolates
     to find the desired weather variable at the height of the aircraft at

@@ -512,53 +512,6 @@ def process_data(day, month, year, hour, altitude,
     return data, ground_altitudes
 
 
-def process_data_nonzero(day, month, year, hour, altitude,
-                         outputs_of_interest=['temperature', 'height',
-                                              'humidity', 'wind_speed',
-                                              'wind_direction', 'pressure',
-                                              'latitude', 'longitude']):
-    ''' process_data_nonzero is the same as process_data except it uses
-    output_for_sBoom2 (see that function for more details)
-    '''
-
-    all_data = pickle.load(open("Pickle_Data_Files/file" + year +
-                                "_" + month + "_" + day + "_" + hour +
-                                ".p", 'rb'))
-
-    # Reading data for selected properties
-    if outputs_of_interest == 'all':
-        output = all_data
-    else:
-        output = {}
-
-        for key in outputs_of_interest:
-            output[key] = copy.deepcopy(all_data[key])
-
-    # Make everything floats
-    for key in outputs_of_interest:
-        output[key] = makeFloats(output[key])
-
-    # Convert wind data
-    wind_x, wind_y = windToXY(output['wind_speed'],
-                              output['wind_direction'])
-    output['wind_x'] = wind_x
-    output['wind_y'] = wind_y
-    output.pop('wind_speed', None)
-    output.pop('wind_direction', None)
-
-    # Prepare for sBOOM
-    data = {}
-    for key in output.keys():
-        lat = output['latitude']
-        lon = output['longitude']
-        height = output['height']
-        if key not in ['latitude', 'longitude', 'height']:
-            data, ground_altitudes = output_for_sBoom2(output[key],
-                                                       key, altitude, lat,
-                                                       lon, height, data)
-    return data, ground_altitudes
-
-
 def windToXY(sknt, drct):
     ''' windToXY takes wind speed in knots and wind direction in degrees
     clockwise from North lists and converts them to wind velocities in
@@ -573,6 +526,13 @@ def windToXY(sknt, drct):
     # directions are from North, clockwise so x is sin(drct)
     wind_x = wind_speed*np.sin(wind_direction)
     wind_y = wind_speed*np.cos(wind_direction)
+
+    # making sure there is no -0.0 value in wind lists
+    # for i in range(len(wind_x)):
+    # if wind_x[i] == 0:
+    # wind_x[i] = abs(wind_x[i])
+    # if wind_y[i] == 0:
+    # wind_y[i] = abs(wind_y[i])
 
     # making sure there is no -0.0 value in wind lists
     # for i in range(len(wind_x)):

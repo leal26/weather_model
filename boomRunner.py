@@ -100,7 +100,7 @@ latlon = []
 
 noise_data = {'latlon': [], 'noise': []}
 
-for i in range(5, 6):
+for i in range(len(data.keys())):
     print(i, list(data.keys())[i])
     noise_data['latlon'].append(list(data.keys())[i])
     noise_data['noise'].append(boomRunner(data, altitudes[i], i))

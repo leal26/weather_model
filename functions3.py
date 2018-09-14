@@ -72,8 +72,8 @@ def contourfGenerator(ALT):
     creator. It takes a list of integer altitudes as an input.
     This function uses openPickle and myInterpolate.
     '''
-    height, relh = openPickle('17', '06', '2018', '12')[1:3]
-    lat, lon = openPickle('17', '06', '2018', '12')[6:8]
+    height, relh = openPickle('18', '06', '2018', '12')[1:3]
+    lat, lon = openPickle('18', '06', '2018', '12')[6:8]
 
     # Finding humidity for each lat/long at set altitude
     w_variable = myInterpolate(lat, lon, relh, height, ALT)
@@ -308,6 +308,8 @@ def output_for_sBoom(li, keyName, ALT, lat, lon, height, data):
     d = copy.deepcopy(data)
     k = 0
     i = 0
+    ground_level = 0
+    ground_altitudes = []
     # ground_level = 0
     # ground_altitudes = []
     while i < len(lat):
@@ -509,6 +511,53 @@ def process_data(day, month, year, hour, altitude,
             data, ground_altitudes = output_for_sBoom(output[key],
                                                       key, altitude, lat,
                                                       lon, height, data)
+    return data, ground_altitudes
+
+
+def process_data_nonzero(day, month, year, hour, altitude,
+                         outputs_of_interest=['temperature', 'height',
+                                              'humidity', 'wind_speed',
+                                              'wind_direction', 'pressure',
+                                              'latitude', 'longitude']):
+    ''' process_data makes a dictionary output that contains the lists
+    specified by the strings given in outputs_of_interest
+    '''
+
+    all_data = pickle.load(open("Pickle_Data_Files/file" + year +
+                                "_" + month + "_" + day + "_" + hour +
+                                ".p", 'rb'))
+
+    # Reading data for selected properties
+    if outputs_of_interest == 'all':
+        output = all_data
+    else:
+        output = {}
+
+        for key in outputs_of_interest:
+            output[key] = copy.deepcopy(all_data[key])
+
+    # Make everything floats
+    for key in outputs_of_interest:
+        output[key] = makeFloats(output[key])
+
+    # Convert wind data
+    wind_x, wind_y = windToXY(output['wind_speed'],
+                              output['wind_direction'])
+    output['wind_x'] = wind_x
+    output['wind_y'] = wind_y
+    output.pop('wind_speed', None)
+    output.pop('wind_direction', None)
+
+    # Prepare for sBOOM
+    data = {}
+    for key in output.keys():
+        lat = output['latitude']
+        lon = output['longitude']
+        height = output['height']
+        if key not in ['latitude', 'longitude', 'height']:
+            data, ground_altitudes = output_for_sBoom2(output[key],
+                                                       key, altitude, lat,
+                                                       lon, height, data)
     return data, ground_altitudes
 
 

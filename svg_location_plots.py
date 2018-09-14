@@ -9,9 +9,9 @@ from functions3 import process_data
 from functions3 import process_data_nonzero
 from mpl_toolkits.basemap import Basemap
 
-DAY = '18'
-MONTH = '06'
-YEAR = '2018'
+DAY = '01'
+MONTH = '08'
+YEAR = '22018'
 HOUR = '12'
 
 ALT_ft = 45000.
@@ -28,10 +28,10 @@ data, altitudes = process_data_nonzero(DAY, MONTH, YEAR, HOUR, ALT,
                                                             'wind_direction'])
 
 # picking points to make graphs of
-plot_keys = [list(data.keys())[2724]]  # list(data.keys())[1000],
+plot_keys = [list(data.keys())[1704]]  # list(data.keys())[1000],
 # list(data.keys())[2000], list(data.keys())[3000], list(data.keys())[4000]]
 
-print(list(data.keys())[2724])
+print(list(data.keys())[1704])
 '''
 31, -96  (College Station)   1704
 41, -74  (New York City)     2646
@@ -96,5 +96,5 @@ for i in range(len(plot_keys)):
     # plt.xlabel('Temperature (C)')
     # plt.ylabel('Altitude (m)')
 
-plt.savefig("test.svg", transparent=True)
+plt.savefig("test.pdf", transparent=True)
 plt.show()

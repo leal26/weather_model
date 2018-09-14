@@ -100,11 +100,7 @@ latlon = []
 
 noise_data = {'latlon': [], 'noise': []}
 
-<<<<<<< HEAD
 for i in range(len(data.keys())):
-=======
-for i in range(2247, 2248):
->>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
     print(i, list(data.keys())[i])
     noise_data['latlon'].append(list(data.keys())[i])
     noise_data['noise'].append(boomRunner(data, altitudes[i], i))
@@ -122,11 +118,7 @@ for i in range(2247, 2248):
 # print(len(noise))
 # print(len(noise_data['noise']))
 
-<<<<<<< HEAD
-g = open("noise_test__" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p",
-=======
-g = open("noise_test_2" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p",
->>>>>>> 0663458ad1a2ac1122a56d309890f6232acba666
+g = open("noise_test_" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p",
          "wb")
 pickle.dump(noise_data, g)
 g.close()

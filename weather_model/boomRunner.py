@@ -122,3 +122,5 @@ g = open("noise_test_" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p",
          "wb")
 pickle.dump(noise_data, g)
 g.close()
+
+print('hi')

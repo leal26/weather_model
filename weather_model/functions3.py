@@ -10,6 +10,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
+from scipy import io
 from scipy.interpolate import griddata
 from scipy.interpolate import interp1d
 from mpl_toolkits.basemap import Basemap
@@ -465,6 +466,36 @@ def output_for_sBoom2(li, keyName, ALT, lat, lon, height, data):
         data[key] = {keyName: temp_combo_li}
 
     return data, ground_altitudes
+
+
+def output_for_sBoom_mat(li, keyName):
+    # FIXME - Incomplete, see openMat.py for latest changes
+    '''Takes a weather data output from matlab and converts it into the form
+    the form needed by boomRunner.py
+    '''
+    data = io.loadmat('data_3.mat')
+    shape = np.shape(data['s'])
+    all_data = {}
+    point_data = {}
+    ground_altitudes = []
+    lat = range(shape[0])
+    lon = range(shape[1])
+    for i in lat:
+        for j in lon:
+            point_data['height'].append(data['s'][i][j][0][0])
+            point_data['temperature'].append(data['s'][i][j][1][0])
+            point_data['wind_x'].append(data['s'][i][j][2][0])
+            point_data['wind_y'].append(data['s'][i][j][3][0])
+            point_data['humidity'].append(data['s'][i][j][4][0])
+
+            key = '%i, %i' % (lat[i], lon[j])
+            keyNames = ['temperature', 'wind_x', 'wind_y', 'humidity']
+            for keyName in keyNames:
+                all_data = [key][keyName] = point_data[keyName]
+
+            ground_altitudes.append(point_data['height'][0])
+
+    return all_data, ground_altitudes
 
 
 def process_data(day, month, year, hour, altitude,

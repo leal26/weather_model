@@ -198,7 +198,7 @@ for i in range(len(lat)):
             x2 = x1 - 1
             y2 = y1 + 1
         else:
-            print 'ERROR'
+            print('ERROR')
 
         # finding indices of each location
         loc1 = w_latlon.index([y1, x1])  # same as [y1, x1]

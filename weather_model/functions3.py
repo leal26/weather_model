@@ -468,7 +468,7 @@ def output_for_sBoom2(li, keyName, ALT, lat, lon, height, data):
     return data, ground_altitudes
 
 
-def output_for_sBoom_mat(li, keyName):
+def output_for_sBoom_mat():
     # FIXME - Incomplete, see openMat.py for latest changes
     '''Takes a weather data output from matlab and converts it into the form
     the form needed by boomRunner.py
@@ -476,24 +476,31 @@ def output_for_sBoom_mat(li, keyName):
     data = io.loadmat('data_3.mat')
     shape = np.shape(data['s'])
     all_data = {}
-    point_data = {}
+    point_data = {'height': [], 'temperature': [], 'wind_x': [], 'wind_y': [],
+                  'humidity': []}
     ground_altitudes = []
-    lat = range(shape[0])
-    lon = range(shape[1])
+    lat = np.arange(13, shape[0])
+    lon = np.arange(216, shape[1])
     for i in lat:
         for j in lon:
-            point_data['height'].append(data['s'][i][j][0][0])
-            point_data['temperature'].append(data['s'][i][j][1][0])
-            point_data['wind_x'].append(data['s'][i][j][2][0])
-            point_data['wind_y'].append(data['s'][i][j][3][0])
-            point_data['humidity'].append(data['s'][i][j][4][0])
+            # NOTE - data is inverted for GFS 3 and not for GFS 4
+            point_data['height'] = data['s'][i][j][0][0][::-1]
+            point_data['temperature'] = data['s'][i][j][1][0][::-1]
+            point_data['wind_x'] = data['s'][i][j][2][0][::-1]
+            point_data['wind_y'] = data['s'][i][j][3][0][::-1]
+            point_data['humidity'] = data['s'][i][j][4][0][::-1]
 
-            key = '%i, %i' % (lat[i], lon[j])
+            key = '%i, %i' % (lat[i-13], lon[j-216])
             keyNames = ['temperature', 'wind_x', 'wind_y', 'humidity']
+            all_data[key] = {'temperature': [], 'wind_x': [], 'wind_y': [],
+                             'humidty': []}
             for keyName in keyNames:
-                all_data = [key][keyName] = point_data[keyName]
+                all_data[key][keyName] = point_data[keyName]
 
-            ground_altitudes.append(point_data['height'][0])
+            # FIXME - heights minus ground height (make ground 0)?
+            h = np.array(point_data['height'])
+            height = h - point_data['height'][0]
+            ground_altitudes.append(height)
 
     return all_data, ground_altitudes
 

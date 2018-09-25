@@ -4,6 +4,7 @@ import numpy as np
 from scipy import interpolate
 
 from functions3 import process_data
+from functions3 import output_for_sBoom_mat
 from rapidboom.pyldb import PyLdB
 from rapidboom.sboomwrapper import SboomWrapper
 
@@ -36,15 +37,15 @@ def boomRunner(data, cruise_altitude, j):
     # temperature input (altitude ft, temperature F)
     temperature = data[key]['temperature']
 
-    # print(temperature)
+    print(temperature)
 
     # wind input (altitude ft, wind X, wind Y)
     wind = []
-    wind = data[key]['wind_x']
+    # wind = [data[key]['wind_x'], data[key]['wind_y']]
     for i in range(len(wind)):
         wind[i].append(data[key]['wind_y'][i][1])
 
-    # print(wind)
+    print(wind)
 
     # change mach_number for each iteration based on wind
     mach = MACH  # MachModifier(DIRECTION, MACH, ALT, wind)
@@ -89,11 +90,14 @@ ALT = ALT_ft * 0.3048
 # changes cruise_altitude (altitudes) to be altitude above
 # ground level so that each iteration (latlon location) can be
 # given as height above ground level
+'''
 data, altitudes = process_data(DAY, MONTH, YEAR, HOUR, ALT,
                                outputs_of_interest=['temperature', 'height',
                                                     'humidity', 'wind_speed',
                                                     'latitude', 'longitude',
                                                     'wind_direction', ])
+'''
+data, altitudes = output_for_sBoom_mat()
 
 noise = []
 latlon = []
@@ -122,5 +126,3 @@ g = open("noise_test_" + YEAR + "_" + MONTH + "_" + DAY + "_" + HOUR + ".p",
          "wb")
 pickle.dump(noise_data, g)
 g.close()
-
-print('hi')

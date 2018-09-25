@@ -6,6 +6,6 @@ setup(name='weather_model',
       url='https://github.com/leal26/weather_model',
       author='Jake Schrass',
       author_email='jlostinco@tamu.edu',
-      license='MIT',
+      license='none',
       packages=['weather_model'],
       zip_safe=False)

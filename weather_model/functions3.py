@@ -468,41 +468,42 @@ def output_for_sBoom2(li, keyName, ALT, lat, lon, height, data):
     return data, ground_altitudes
 
 
-def output_for_sBoom_mat():
-    # FIXME - Incomplete, see openMat.py for latest changes
-    '''Takes a weather data output from matlab and converts it into the form
-    the form needed by boomRunner.py
-    '''
+def output_for_sBoom_mat(ALT):
     data = io.loadmat('data_3.mat')
     shape = np.shape(data['s'])
     all_data = {}
     point_data = {'height': [], 'temperature': [], 'wind_x': [], 'wind_y': [],
                   'humidity': []}
-    ground_altitudes = []
+    cruise_altitudes = []
     lat = np.arange(13, shape[0])
     lon = np.arange(216, shape[1])
     for i in lat:
         for j in lon:
             # NOTE - data is inverted for GFS 3 and not for GFS 4
-            point_data['height'] = data['s'][i][j][0][0][::-1]
-            point_data['temperature'] = data['s'][i][j][1][0][::-1]
-            point_data['wind_x'] = data['s'][i][j][2][0][::-1]
-            point_data['wind_y'] = data['s'][i][j][3][0][::-1]
-            point_data['humidity'] = data['s'][i][j][4][0][::-1]
+            point_data['height'] = list(data['s'][i][j][0][0][::-1])
+            point_data['temperature'] = list(data['s'][i][j][1][0][::-1])
+            point_data['wind_x'] = list(data['s'][i][j][2][0][::-1])
+            point_data['wind_y'] = list(data['s'][i][j][3][0][::-1])
+            point_data['humidity'] = list(data['s'][i][j][4][0][::-1])
+
+            # Heights minus ground height (make ground 0)
+            # print(point_data['height'][0])
+            h = point_data['height'][0]
+            cruise_altitudes.append(ALT - h)
+
+            height = []
+            for k in range(len(point_data['height'])):
+                height.append(point_data['height'][k] - h)
 
             key = '%i, %i' % (lat[i-13], lon[j-216])
             keyNames = ['temperature', 'wind_x', 'wind_y', 'humidity']
             all_data[key] = {'temperature': [], 'wind_x': [], 'wind_y': [],
-                             'humidty': []}
+                             'humidity': []}
             for keyName in keyNames:
-                all_data[key][keyName] = point_data[keyName]
-
-            # FIXME - heights minus ground height (make ground 0)?
-            h = np.array(point_data['height'])
-            height = h - point_data['height'][0]
-            ground_altitudes.append(height)
-
-    return all_data, ground_altitudes
+                for l in range(len(height)):
+                    all_data[key][keyName].append([height[l],
+                                                   point_data[keyName][l]])
+    return all_data, cruise_altitudes
 
 
 def process_data(day, month, year, hour, altitude,

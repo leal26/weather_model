@@ -36,12 +36,12 @@ def boomRunner(data, cruise_altitude, j):
 
     # temperature input (altitude ft, temperature F)
     temperature = data[key]['temperature']
-
+    print(type(temperature))
     print(temperature)
 
     # wind input (altitude ft, wind X, wind Y)
     wind = []
-    # wind = [data[key]['wind_x'], data[key]['wind_y']]
+    wind = data[key]['wind_x']  # data[key]['wind_y']]
     for i in range(len(wind)):
         wind[i].append(data[key]['wind_y'][i][1])
 
@@ -53,7 +53,7 @@ def boomRunner(data, cruise_altitude, j):
     # wind input (altitude ft, humidity %)
     humidity = data[key]['humidity']
 
-    # print(humidity)
+    print(humidity)
 
     # update sBOOM settings and run
     # FIXME - removed wind profile section
@@ -97,16 +97,17 @@ data, altitudes = process_data(DAY, MONTH, YEAR, HOUR, ALT,
                                                     'latitude', 'longitude',
                                                     'wind_direction', ])
 '''
-data, altitudes = output_for_sBoom_mat()
+data, altitudes = output_for_sBoom_mat(ALT)
 
 noise = []
 latlon = []
 
 noise_data = {'latlon': [], 'noise': []}
 
-for i in range(len(data.keys())):
+for i in range(0, 1):
     print(i, list(data.keys())[i])
     noise_data['latlon'].append(list(data.keys())[i])
+    print(altitudes[i])
     noise_data['noise'].append(boomRunner(data, altitudes[i], i))
     '''
     if (i+1) % 100 == 0:

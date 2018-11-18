@@ -469,40 +469,45 @@ def output_for_sBoom2(li, keyName, ALT, lat, lon, height, data):
 
 
 def output_for_sBoom_mat(ALT):
-    data = io.loadmat('data_3.mat')
-    shape = np.shape(data['s'])
+    data = io.loadmat('data_092518.mat')  # FIXME: Make filename an input
     all_data = {}
-    point_data = {'height': [], 'temperature': [], 'wind_x': [], 'wind_y': [],
-                  'humidity': []}
     cruise_altitudes = []
-    lat = np.arange(13, shape[0])
-    lon = np.arange(216, shape[1])
+    lat = range(64, 156, 2)  # FIXME: These numbers need to be checked
+    lon = range(432, 616, 2)
     for i in lat:
         for j in lon:
             # NOTE - data is inverted for GFS 3 and not for GFS 4
-            point_data['height'] = list(data['s'][i][j][0][0][::-1])
-            point_data['temperature'] = list(data['s'][i][j][1][0][::-1])
-            point_data['wind_x'] = list(data['s'][i][j][2][0][::-1])
-            point_data['wind_y'] = list(data['s'][i][j][3][0][::-1])
-            point_data['humidity'] = list(data['s'][i][j][4][0][::-1])
+            height = list(data['s'][i][j][0][0])
+            temperature = list(data['s'][i][j][1][0])
+            wind_x = list(data['s'][i][j][2][0])
+            wind_y = list(data['s'][i][j][3][0])
+            humidity = list(data['s'][i][j][4][0])
 
             # Heights minus ground height (make ground 0)
-            # print(point_data['height'][0])
-            h = point_data['height'][0]
+            h = height[0]
             cruise_altitudes.append(ALT - h)
 
-            height = []
-            for k in range(len(point_data['height'])):
-                height.append(point_data['height'][k] - h)
+            relative_height = []
+            for k in range(len(height)):
+                relative_height.append(height[k] - h)
+                temperature[k] = temperature[k] - 273.15
+                wind_x[k] = wind_x[k] * 1.94384
+                wind_y[k] = wind_y[k] * 1.94384
 
-            key = '%i, %i' % (lat[i-13], lon[j-216])
-            keyNames = ['temperature', 'wind_x', 'wind_y', 'humidity']
+            key = '%i, %i' % (int(i/2), int(360-(j/2)))
+            # keyNames = ['temperature', 'wind_x', 'wind_y', 'humidity']
             all_data[key] = {'temperature': [], 'wind_x': [], 'wind_y': [],
                              'humidity': []}
-            for keyName in keyNames:
-                for l in range(len(height)):
-                    all_data[key][keyName].append([height[l],
-                                                   point_data[keyName][l]])
+            for l in range(len(relative_height)):
+                all_data[key]['temperature'].append([relative_height[l],
+                                                     temperature[l]])
+                all_data[key]['wind_x'].append([relative_height[l],
+                                                wind_x[l]])
+                all_data[key]['wind_y'].append([relative_height[l],
+                                                wind_y[l]])
+                all_data[key]['humidity'].append([relative_height[l],
+                                                  humidity[l]])
+
     return all_data, cruise_altitudes
 
 

@@ -29,7 +29,7 @@ def boomRunner(data, cruise_altitude, j):
     key = list(data.keys())[j]
 
     # get pressure signature from pickle
-    nearfield_sig = pickle.load(open("nearfiled_signature.p", "rb"))
+    nearfield_sig = pickle.load(open("nearfield_signatures/nearfiled_signature.p", "rb"))
 
     # initialize sBOOM
     sboom = SboomWrapper(CASE_DIR, exe="sboom_windows.dat.allow")

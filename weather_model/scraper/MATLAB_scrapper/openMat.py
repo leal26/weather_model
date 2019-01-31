@@ -3,6 +3,7 @@ import numpy as np
 from functions3 import makeFloats
 
 '''
+Practice Function for converting .mat files to pickle files
 data = io.loadmat('data_3.mat')
 '''
 
